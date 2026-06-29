@@ -6,9 +6,9 @@
 [![Python](https://img.shields.io/badge/Python-3.7%2B-green.svg)](https://www.python.org/)
 
 **Course:** BLM 4140 - Wireless & Mobile Networks  
-**Instructor:** Assoc. Prof. Dr. Berk Canberk  
+**Instructor:** Dr. Mehmet Şükrü KURAN  
 **Student:** Melih Alçık (ID: 22011628)  
-**University:** Istanbul Technical University  
+**University:** Yıldız Technical University (YTU)  
 **Date:** June 2026
 
 ---
@@ -141,7 +141,17 @@ cd /path/to/ns-3-dev
 
 Three throughput vs. station-count graphs are generated (one per load level). Each graph compares EDCA-only versus EDCA+RTS/CTS performance across 4, 8, 12, and 20 stations.
 
-Key findings are documented in [BLM4140_Report_22011628.pdf](BLM4140_Report_22011628.pdf).
+### Key Findings
+
+**50% Load:** EDCA drops from 24.7 Mbps (4 STAs) to 13.6 Mbps (20 STAs). RTS/CTS outperforms throughout — Frame Aggregation makes the RTS overhead worthwhile by letting STAs reserve the channel and send large data bursts.
+
+**80% Load:** EDCA degrades sharply after 8 STAs, falling to 13.1 Mbps at 20 STAs due to heavy collisions and backoff. RTS/CTS eliminates most collisions and sustains 26.2 Mbps at 20 STAs.
+
+**90% Load:** EDCA effectively saturates at 13.1 Mbps with 20 STAs — stations spend more time in backoff than transmitting. RTS/CTS holds steady at 26.1 Mbps, confirming that strict channel reservation is essential in dense, heavily loaded Wi-Fi networks.
+
+**Conclusion:** Even with modern MAC mechanisms (EDCA, TXOP, Block ACK, Frame Aggregation) enabled, throughput still degrades with increasing station count under EDCA-only — consistent with the Bianchi model's predictions. RTS/CTS significantly mitigates this degradation at high loads.
+
+Full analysis is documented in [BLM4140_Report_22011628.pdf](BLM4140_Report_22011628.pdf).
 
 ---
 
@@ -166,4 +176,4 @@ This project is licensed under the MIT License — see [LICENSE](LICENSE) for de
 ## Author
 
 **Melih Alçık** — Student ID: 22011628  
-Course: BLM 4140 Wireless & Mobile Networks, Istanbul Technical University
+Course: BLM 4140 Wireless & Mobile Networks, Yıldız Technical University
