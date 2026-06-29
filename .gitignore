@@ -1,0 +1,56 @@
+# Build directories
+build/
+dist/
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+*.exe
+
+# NS-3 related
+ns-3-dev/
+*.ns3
+ns3-*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+
+# IDE and Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+
+# Simulation outputs
+*.csv
+*.txt~
+results/
+output/
+logs/
+
+# OS specific
+.DS_Store
+Thumbs.db
+*.log
+
+# Documentation build files
+docs/_build/
+site/
