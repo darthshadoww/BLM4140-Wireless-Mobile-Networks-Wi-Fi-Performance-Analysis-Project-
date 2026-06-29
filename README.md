@@ -1,146 +1,169 @@
-# Wi-Fi Performance Analysis Project (IEEE 802.11n)
+# IEEE 802.11ac Wi-Fi Performance Analysis via NS-3 Simulation
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![NS-3](https://img.shields.io/badge/Simulator-NS--3-blue.svg)](https://www.nsnam.org/)
+[![C++](https://img.shields.io/badge/Language-C%2B%2B-orange.svg)](https://isocpp.org/)
+[![Python](https://img.shields.io/badge/Python-3.7%2B-green.svg)](https://www.python.org/)
 
 **Course:** BLM 4140 - Wireless & Mobile Networks  
+**Instructor:** Assoc. Prof. Dr. Berk Canberk  
 **Student:** Melih Alçık (ID: 22011628)  
-**University:** [Your University Name]
+**University:** Istanbul Technical University  
+**Date:** June 2026
 
 ---
 
-## 📋 Project Overview
+## Overview
 
-This project evaluates IEEE 802.11n Wi-Fi performance through NS-3 network simulation. It runs 24 different simulation scenarios with varying configurations and generates comprehensive analysis plots comparing throughput across different parameters.
+This project evaluates the aggregated throughput performance of an **IEEE 802.11ac** (Wi-Fi 5) network under varying conditions using the [NS-3 network simulator](https://www.nsnam.org/). The core motivation comes from the well-known **Bianchi model**, which shows that Wi-Fi throughput degrades as the number of competing stations increases — but the Bianchi model only covers the legacy DCF mechanism. This project investigates whether the same degradation occurs when **modern MAC-layer mechanisms** (EDCA, TXOP, Block ACK, Frame Aggregation) are enabled.
 
-## 📁 Project Structure
+### Research Question
+
+> Does total Wi-Fi throughput still decrease with increasing station count when modern 802.11ac MAC mechanisms (EDCA, TXOP, Block ACK, Frame Aggregation) are active — and how does enabling RTS/CTS change this behavior?
+
+---
+
+## Simulation Parameters
+
+| Parameter | Values Tested |
+|-----------|--------------|
+| `numSTA` (number of stations) | 4, 8, 12, 20 |
+| `macMechanism` | EDCA only / EDCA + RTS/CTS |
+| `totalLoadPercent` (offered load) | 50%, 80%, 90% |
+
+**Total scenarios:** 4 × 2 × 3 = **24 scenarios**
+
+### Fixed Configuration
+
+- **Standard:** IEEE 802.11ac (Wi-Fi 5), 2.4 GHz band
+- **Channel Bandwidth:** 20 MHz
+- **MIMO:** 1×1 (single antenna, single spatial stream)
+- **Guard Interval:** Short Guard Interval (SGI) → raw PHY rate: 72.2 Mbps (MCS7)
+- **Rate Adaptation:** Minstrel HT algorithm
+- **Topology:** Single BSS — one AP, all STAs directly connected
+- **Traffic:** Uplink only, TCP protocol (OnOff application)
+- **Duration:** 10 seconds per scenario
+- **MAC Features Enabled:** EDCA (QoS), TXOP, Block ACK, Frame Aggregation (A-MPDU + A-MSDU)
+
+---
+
+## Project Structure
 
 ```
 .
-├── wifi-performance-eval.cc          # Core NS-3 simulation script
-├── run_experiments.sh                # Bash automation script for running all scenarios
-├── plot_results.py                   # Python script for data analysis & visualization
-├── BLM4140_Report_22011628.pdf       # Final results documentation with analysis
-├── README.md                          # This file
-├── .gitignore                        # Git ignore rules
-└── results/                          # Generated simulation results (gitignored)
+├── wifi-performance-eval.cc   # NS-3 C++ simulation script
+├── run_experiments.sh         # Bash script to run all 24 scenarios automatically
+├── plot_results.py            # Python script to parse results and generate plots
+├── BLM4140_Report_22011628.pdf  # Full report with results, graphs, and analysis
+├── README.md                  # This file
+├── .gitignore
+└── results/                   # Generated CSV and plots (gitignored)
+    ├── results.csv
+    ├── plot_load_50.png
+    ├── plot_load_80.png
+    └── plot_load_90.png
 ```
 
-### File Descriptions
+---
 
-- **`wifi-performance-eval.cc`** - The core NS-3 simulation script that models IEEE 802.11n network scenarios
-- **`run_experiments.sh`** - Automated bash script to execute all 24 simulation scenarios and collect results
-- **`plot_results.py`** - Python utility for parsing CSV results and generating visualization plots
-- **`BLM4140_Report_22011628.pdf`** - Comprehensive final report with experimental results and analysis
+## How It Works
 
-## 🚀 Quick Start
+### 1. NS-3 Simulation (`wifi-performance-eval.cc`)
+
+The C++ simulation script:
+- Creates **1 AP + N STA nodes** in a BSS topology
+- Places all STAs 1 meter from the AP (maximum signal strength → highest MCS)
+- Configures **802.11ac** with Minstrel HT rate manager
+- Sets **short guard interval**, **A-MPDU** (max 65535 bytes) and **A-MSDU** (max 7935 bytes) for frame aggregation
+- Enables or disables **RTS/CTS** based on the `macMechanism` parameter (threshold = 0 to enable, 999999 to disable)
+- Runs **TCP OnOff** clients on each STA sending uplink traffic to a PacketSink on the AP
+- Outputs a single line: the measured total throughput in **Mbit/sec**
+
+### 2. Automation Script (`run_experiments.sh`)
+
+Loops over all combinations of `load × mac × sta`, runs each scenario, captures the throughput output, and appends a row to `results.csv` with format: `Load,MAC,STA,Throughput`.
+
+### 3. Plotting (`plot_results.py`)
+
+Reads `results.csv` and generates **3 separate graphs** — one per `totalLoadPercent` value (50%, 80%, 90%). Each graph shows:
+- **X-axis:** Number of STAs (4, 8, 12, 20)
+- **Y-axis:** Total Throughput (Mbit/sec)
+- **Two curves:** EDCA only vs. EDCA + RTS/CTS
+
+---
+
+## Quick Start
 
 ### Prerequisites
 
-- **NS-3 Simulator** (tested with ns-3-dev)
-- **Python 3.7+** with matplotlib and pandas
-- **Bash Shell**
-- **C++ Compiler** (g++/clang++)
+- [NS-3](https://www.nsnam.org/) simulator (tested with ns-3-dev)
+- **Python 3.7+** with `matplotlib` and `pandas`
+- **Bash** shell (Linux/macOS)
+- **C++17** compiler (g++ or clang++)
 
-### Installation
+### Setup
 
-1. Clone this repository:
 ```bash
-git clone https://github.com/yourusername/BLM4140_Project.git
-cd BLM4140_Project
-```
+# 1. Clone this repo
+git clone https://github.com/darthshadoww/BLM4140-Wireless-Mobile-Networks-Wi-Fi-Performance-Analysis-Project-.git
+cd BLM4140-Wireless-Mobile-Networks-Wi-Fi-Performance-Analysis-Project-
 
-2. Ensure NS-3 is installed and configured properly
+# 2. Copy the simulation script to your NS-3 scratch folder
+cp wifi-performance-eval.cc /path/to/ns-3-dev/scratch/
 
-3. Install Python dependencies:
-```bash
+# 3. Install Python dependencies
 pip install matplotlib pandas numpy
 ```
 
-### Running the Experiments
+### Run All 24 Scenarios
 
-#### Option 1: Automated Pipeline (Recommended)
-
-Execute all simulations and generate plots automatically:
 ```bash
+# Edit WORKSPACE_DIR and NS3_DIR paths in run_experiments.sh first
 chmod +x run_experiments.sh
 ./run_experiments.sh
 ```
 
 This will:
 1. Run all 24 simulation scenarios
-2. Log results to a CSV file
-3. Generate throughput analysis plots
-4. Display results summary
+2. Save results to `results.csv`
+3. Generate `plot_load_50.png`, `plot_load_80.png`, `plot_load_90.png`
 
-#### Option 2: Manual Execution
+### Run a Single Scenario Manually
 
-Run individual components:
-
-**1. Execute Simulations:**
 ```bash
 cd /path/to/ns-3-dev
-./waf --run "scratch/wifi-performance-eval"
+./ns3 run "scratch/wifi-performance-eval --numSTA=8 --macMechanism=EDCA --totalLoadPercent=80"
 ```
-
-**2. Generate Plots:**
-```bash
-python plot_results.py
-```
-
-## 📊 Simulation Scenarios
-
-The project evaluates 24 different scenarios testing various parameters:
-- Different channel bandwidths
-- Various distance ranges
-- Multiple modulation schemes
-- Different traffic patterns
-
-Detailed scenario configurations are documented in the report.
-
-## 📈 Results
-
-Generated plots include:
-- Throughput vs Distance
-- Throughput vs Channel Bandwidth
-- Throughput vs Traffic Load
-- Performance Comparison across scenarios
-
-See `BLM4140_Report_22011628.pdf` for detailed analysis and results.
-
-## 🛠️ Technologies Used
-
-- **NS-3 Network Simulator** - Network simulation framework
-- **C++** - Simulation logic implementation
-- **Python** - Data analysis and visualization
-- **Bash** - Automation scripting
-- **Matplotlib** - Graph plotting
-- **Pandas** - Data processing
-
-## 📝 Documentation
-
-For detailed information about:
-- Experimental methodology
-- Simulation parameters
-- Results analysis
-- Conclusions
-
-Please refer to the [BLM4140_Report_22011628.pdf](BLM4140_Report_22011628.pdf)
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 👤 Author
-
-**Melih Alçık**
-- Student ID: 22011628
-- Course: BLM 4140 - Wireless & Mobile Networks
-
-## 📧 Contact
-
-For questions or suggestions, please open an issue in this repository.
 
 ---
 
-**Last Updated:** June 2026
+## Results Summary
 
+Three throughput vs. station-count graphs are generated (one per load level). Each graph compares EDCA-only versus EDCA+RTS/CTS performance across 4, 8, 12, and 20 stations.
+
+Key findings are documented in [BLM4140_Report_22011628.pdf](BLM4140_Report_22011628.pdf).
+
+---
+
+## Technologies
+
+| Tool | Purpose |
+|------|---------|
+| NS-3 | Network simulation framework |
+| C++ | Simulation script implementation |
+| Python / Matplotlib | Result visualization |
+| Pandas | CSV data processing |
+| Bash | Experiment automation |
+
+---
+
+## License
+
+This project is licensed under the MIT License — see [LICENSE](LICENSE) for details.
+
+---
+
+## Author
+
+**Melih Alçık** — Student ID: 22011628  
+Course: BLM 4140 Wireless & Mobile Networks, Istanbul Technical University
